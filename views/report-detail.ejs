@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html data-theme="light">
+
+<head>
+  <title>Report Detail</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body class="min-h-screen bg-base-200">
+  <!-- Navbar -->
+  <div class="navbar bg-base-100 shadow-lg sticky top-0 z-50">
+    <div class="navbar-start">
+      <a href="/" class="btn btn-ghost text-xl">
+        <i class="fas fa-chart-line mr-2"></i>
+        Report Generator
+      </a>
+    </div>
+    <div class="navbar-center hidden lg:flex">
+      <div class="form-control">
+        <label class="cursor-pointer label">
+          <span class="label-text mr-2">Theme</span>
+          <input type="checkbox" class="toggle" id="theme-toggle">
+        </label>
+      </div>
+    </div>
+    <div class="navbar-end">
+      <a href="/reports" class="btn btn-primary">
+        <i class="fas fa-list mr-2"></i>
+        All Reports
+      </a>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container mx-auto px-4 py-8">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <!-- Report Header -->
+        <div class="mb-6">
+          <h2 class="card-title text-2xl mb-2">
+            <i class="fas fa-file-alt mr-2"></i>
+            Report Detail
+          </h2>
+          <p class="text-sm opacity-70">
+            Created on <%= new Date(report.createdAt).toLocaleString() %>
+          </p>
+        </div>
+
+        <!-- Report Info -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div class="card bg-base-200">
+            <div class="card-body">
+              <h3 class="card-title text-lg">
+                <i class="fas fa-user mr-2"></i>
+                Owner Information
+              </h3>
+              <p class="font-medium">
+                <%= report.owner %>
+              </p>
+            </div>
+          </div>
+          <div class="card bg-base-200">
+            <div class="card-body">
+              <h3 class="card-title text-lg">
+                <i class="fas fa-chart-pie mr-2"></i>
+                Statistics
+              </h3>
+              <div class="flex gap-4">
+                <div class="stat-value text-primary">
+                  <%= report.Brands.length %>
+                    <div class="stat-desc">Brands</div>
+                </div>
+                <div class="stat-value text-secondary">
+                  <%= report.Brands.reduce((sum, brand)=> sum + brand.Urls.length, 0) %>
+                    <div class="stat-desc">URLs</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Brands and URLs -->
+        <div class="space-y-6">
+          <% report.Brands.forEach((brand, index)=> { %>
+            <div class="card bg-base-200">
+              <div class="card-body">
+                <h3 class="card-title">
+                  <span class="badge badge-primary badge-lg mr-2">
+                    <%= index + 1 %>
+                  </span>
+                  <%= brand.name %>
+                </h3>
+
+                <div class="overflow-x-auto">
+                  <table class="table table-zebra w-full">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>URL</th>
+                        <th>Rank</th>
+                        <th>AMP Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% brand.Urls.forEach((url, urlIndex)=> { %>
+                        <tr>
+                          <td>
+                            <%= urlIndex + 1 %>
+                          </td>
+                          <td>
+                            <a href="<%= url.url %>" target="_blank" class="link link-primary">
+                              <%= url.url %>
+                            </a>
+                          </td>
+                          <td>
+                            <div class="badge <%= url.rank <= 10 ? 'badge-success' : 'badge-warning' %>">
+                              <%= url.rank %>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="badge <%= url.ampStatus ? 'badge-success' : 'badge-error' %>">
+                              <%= url.ampStatus ? 'Active' : 'Inactive' %>
+                            </div>
+                          </td>
+                        </tr>
+                        <% }); %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <% }); %>
+        </div>
+
+        <!-- Additional Information -->
+        <% if (report.attention || report.updates) { %>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <% if (report.attention) { %>
+              <div class="card bg-base-200">
+                <div class="card-body">
+                  <h3 class="card-title text-lg text-warning">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    Attention
+                  </h3>
+                  <p>
+                    <%= report.attention %>
+                  </p>
+                </div>
+              </div>
+              <% } %>
+
+                <% if (report.updates) { %>
+                  <div class="card bg-base-200">
+                    <div class="card-body">
+                      <h3 class="card-title text-lg text-info">
+                        <i class="fas fa-sync-alt mr-2"></i>
+                        Updates
+                      </h3>
+                      <p>
+                        <%= report.updates %>
+                      </p>
+                    </div>
+                  </div>
+                  <% } %>
+          </div>
+          <% } %>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Theme toggle
+    document.getElementById('theme-toggle').addEventListener('change', function (e) {
+      const theme = e.target.checked ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+    });
+
+    // Set initial theme
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    document.getElementById('theme-toggle').checked = currentTheme === 'dark';
+  </script>
+</body>
+
+</html>

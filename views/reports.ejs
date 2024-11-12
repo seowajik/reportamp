@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html data-theme="light">
+
+<head>
+  <title>Report List</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body class="min-h-screen bg-base-200">
+  <!-- Navbar -->
+  <div class="navbar bg-base-100 shadow-lg sticky top-0 z-50">
+    <div class="navbar-start">
+      <a href="/" class="btn btn-ghost text-xl">
+        <i class="fas fa-chart-line mr-2"></i>
+        Report Generator
+      </a>
+    </div>
+    <div class="navbar-center hidden lg:flex">
+      <div class="form-control">
+        <label class="cursor-pointer label">
+          <span class="label-text mr-2">Theme</span>
+          <input type="checkbox" class="toggle" id="theme-toggle">
+        </label>
+      </div>
+    </div>
+    <div class="navbar-end">
+      <a href="/" class="btn btn-primary">
+        <i class="fas fa-plus mr-2"></i>
+        New Report
+      </a>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container mx-auto px-4 py-8">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title mb-6">
+          <i class="fas fa-list mr-2"></i>
+          Report List
+        </h2>
+
+        <!-- Search and Filter -->
+        <div class="flex flex-col md:flex-row gap-4 mb-6">
+          <div class="form-control flex-1">
+            <div class="input-group">
+              <input type="text" placeholder="Search reports..." class="input input-bordered w-full" id="searchInput" />
+              <button class="btn btn-square">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </div>
+          <select class="select select-bordered" id="filterSelect">
+            <option value="">All Reports</option>
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+          </select>
+        </div>
+
+        <!-- Reports Table -->
+        <div class="overflow-x-auto">
+          <table class="table table-zebra w-full">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Owner</th>
+                <th>Brands</th>
+                <th>URLs</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (reports && reports.length> 0) { %>
+                <% reports.forEach(report=> { %>
+                  <tr class="hover">
+                    <td>
+                      <div class="font-medium">
+                        <%= new Date(report.createdAt).toLocaleDateString() %>
+                      </div>
+                      <div class="text-sm opacity-50">
+                        <%= new Date(report.createdAt).toLocaleTimeString() %>
+                      </div>
+                    </td>
+                    <td>
+                      <%= report.owner %>
+                    </td>
+                    <td>
+                      <div class="badge badge-primary">
+                        <%= report.Brands.length %>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="badge badge-secondary">
+                        <%= report.Brands.reduce((sum, brand)=> sum + brand.Urls.length, 0) %>
+                      </div>
+                    </td>
+                    <td>
+                      <a href="/reports/<%= report.id %>" class="btn btn-info btn-sm">
+                        <i class="fas fa-eye mr-2"></i>
+                        View
+                      </a>
+                    </td>
+                  </tr>
+                  <% }); %>
+                    <% } else { %>
+                      <tr>
+                        <td colspan="5" class="text-center py-4">
+                          No reports found
+                        </td>
+                      </tr>
+                      <% } %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex justify-center mt-6">
+          <div class="btn-group">
+            <button class="btn btn-sm">«</button>
+            <button class="btn btn-sm">Page 1</button>
+            <button class="btn btn-sm">»</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Theme toggle
+    document.getElementById('theme-toggle').addEventListener('change', function (e) {
+      const theme = e.target.checked ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+    });
+
+    // Set initial theme
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    document.getElementById('theme-toggle').checked = currentTheme === 'dark';
+
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('input', function (e) {
+      const searchTerm = e.target.value.toLowerCase();
+      const rows = document.querySelectorAll('tbody tr');
+
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+      });
+    });
+
+    // Filter functionality
+    document.getElementById('filterSelect').addEventListener('change', function (e) {
+      const filter = e.target.value;
+      const rows = document.querySelectorAll('tbody tr');
+
+      rows.forEach(row => {
+        const date = new Date(row.querySelector('td:first-child div:first-child').textContent);
+        let show = true;
+
+        switch (filter) {
+          case 'today':
+            show = isToday(date);
+            break;
+          case 'week':
+            show = isThisWeek(date);
+            break;
+          case 'month':
+            show = isThisMonth(date);
+            break;
+        }
+
+        row.style.display = show ? '' : 'none';
+      });
+    });
+
+    // Date helper functions
+    function isToday(date) {
+      const today = new Date();
+      return date.toDateString() === today.toDateString();
+    }
+
+    function isThisWeek(date) {
+      const today = new Date();
+      const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
+      return date >= weekStart;
+    }
+
+    function isThisMonth(date) {
+      const today = new Date();
+      return date.getMonth() === today.getMonth() &&
+        date.getFullYear() === today.getFullYear();
+    }
+  </script>
+</body>
+
+</html>

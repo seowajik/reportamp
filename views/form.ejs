@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html data-theme="light">
+
+<head>
+  <title>Report Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    .fade-in {
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    .fade-out {
+      animation: fadeOut 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      to {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+    }
+
+    .url-entry,
+    .brand-entry {
+      transition: all 0.3s ease;
+    }
+
+    .hover-shadow:hover {
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-base-200">
+  <!-- Navbar -->
+  <div class="navbar bg-base-100 shadow-lg sticky top-0 z-50">
+    <div class="navbar-start">
+      <a class="btn btn-ghost text-xl">
+        <i class="fas fa-chart-line mr-2"></i>
+        Report Generator
+      </a>
+    </div>
+    <div class="navbar-center hidden lg:flex">
+      <div class="form-control">
+        <label class="cursor-pointer label">
+          <span class="label-text mr-2">Theme</span>
+          <input type="checkbox" class="toggle" id="theme-toggle">
+        </label>
+      </div>
+    </div>
+    <div class="navbar-end">
+      <a href="/reports" class="btn btn-primary">
+        <i class="fas fa-list mr-2"></i>
+        View Reports
+      </a>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container mx-auto px-4 py-8">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <form id="reportForm" class="space-y-6">
+          <!-- Owner Information -->
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text font-medium"><i class="fas fa-user mr-2"></i> Owner Name</span>
+              <span class="label-text-alt text-error">Required</span>
+            </label>
+            <div class="input-group">
+              <input type="text" name="owner" class="input input-bordered w-full" placeholder="Enter owner name"
+                required />
+            </div>
+          </div>
+
+          <!-- Brands Container -->
+          <div id="brands-container" class="space-y-6">
+            <div class="brand-entry card bg-base-200 shadow-sm hover-shadow">
+              <div class="card-body">
+                <!-- Brand Header -->
+                <div class="flex flex-wrap justify-between items-center gap-4">
+                  <div class="flex items-center gap-2">
+                    <span class="badge badge-primary badge-lg">Brand 1</span>
+                  </div>
+                  <button type="button" class="btn btn-error btn-sm remove-brand">
+                    <i class="fas fa-trash mr-2"></i>
+                    Remove Brand
+                  </button>
+                </div>
+
+                <!-- Brand Name -->
+                <div class="form-control">
+                  <label class="label">
+                    <span class="label-text font-medium">Brand Name</span>
+                    <span class="label-text-alt text-error">Required</span>
+                  </label>
+                  <input type="text" name="brands[0][name]" class="input input-bordered" placeholder="Enter brand name"
+                    required />
+                </div>
+
+                <!-- URLs Container -->
+                <div class="urls-container space-y-4 mt-4">
+                  <div class="url-entry card bg-base-100 hover-shadow">
+                    <div class="card-body p-4">
+                      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- URL Input -->
+                        <div class="form-control">
+                          <label class="label">
+                            <span class="label-text font-medium">URL</span>
+                            <span class="label-text-alt text-error">Required</span>
+                          </label>
+                          <input type="url" name="brands[0][urls][0][url]" class="input input-bordered"
+                            placeholder="https://example.com" required />
+                        </div>
+
+                        <!-- Rank Input -->
+                        <div class="form-control">
+                          <label class="label">
+                            <span class="label-text font-medium">Rank</span>
+                            <span class="label-text-alt text-error">Required</span>
+                          </label>
+                          <input type="number" name="brands[0][urls][0][rank]" class="input input-bordered" min="1"
+                            placeholder="Enter rank" required />
+                        </div>
+
+                        <!-- AMP Status -->
+                        <div class="form-control">
+                          <label class="label">
+                            <span class="label-text font-medium">AMP Status</span>
+                          </label>
+                          <select name="brands[0][urls][0][ampStatus]" class="select select-bordered">
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
+                          </select>
+                        </div>
+
+                        <!-- URL Actions -->
+                        <div class="form-control">
+                          <label class="label">
+                            <span class="label-text font-medium">Actions</span>
+                          </label>
+                          <button type="button" class="btn btn-error btn-sm remove-url">
+                            <i class="fas fa-times mr-2"></i>
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Add URL Button -->
+                <div class="card-actions mt-4">
+                  <button type="button" class="btn btn-secondary btn-sm add-url">
+                    <i class="fas fa-plus mr-2"></i>
+                    Add URL
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add Brand Button -->
+          <div class="card-actions">
+            <button type="button" id="add-brand" class="btn btn-accent">
+              <i class="fas fa-plus mr-2"></i>
+              Add Brand
+            </button>
+          </div>
+
+          <!-- Additional Information -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-medium">Attention</span>
+              </label>
+              <textarea name="attention" class="textarea textarea-bordered h-24"
+                placeholder="Enter any important notes..."></textarea>
+            </div>
+
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-medium">Updates</span>
+              </label>
+              <textarea name="updates" class="textarea textarea-bordered h-24"
+                placeholder="Enter any updates..."></textarea>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="card-actions justify-end mt-6">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-paper-plane mr-2"></i>
+              Generate Report
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modals -->
+  <!-- Loading Modal -->
+  <dialog id="loading-modal" class="modal">
+    <div class="modal-box text-center">
+      <h3 class="font-bold text-lg">Processing Report</h3>
+      <div class="py-4">
+        <span class="loading loading-spinner loading-lg"></span>
+        <p class="mt-4">Please wait while we generate your report...</p>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Success Modal -->
+  <dialog id="success-modal" class="modal">
+    <div class="modal-box">
+      <h3 class="font-bold text-lg text-success">
+        <i class="fas fa-check-circle mr-2"></i>
+        Success!
+      </h3>
+      <p class="py-4">Your report has been generated successfully.</p>
+      <div class="modal-action">
+        <button class="btn btn-primary" onclick="window.location.href='/reports'">
+          <i class="fas fa-list mr-2"></i>
+          View Reports
+        </button>
+        <button class="btn" onclick="document.getElementById('success-modal').close()">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Error Modal -->
+  <dialog id="error-modal" class="modal">
+    <div class="modal-box">
+      <h3 class="font-bold text-lg text-error">
+        <i class="fas fa-exclamation-circle mr-2"></i>
+        Error
+      </h3>
+      <p id="error-message" class="py-4">Something went wrong.</p>
+      <div class="modal-action">
+        <button class="btn" onclick="document.getElementById('error-modal').close()">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Scripts -->
+  <script src="/js/form.js"></script>
+</body>
+
+</html>
