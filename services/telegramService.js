@@ -4,18 +4,22 @@ require("dotenv").config();
 class TelegramService {
   constructor() {
     this.bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, {
-      polling: true,
+      polling: false,
     });
-    this.groupId = process.env.TELEGRAM_GROUP_ID;
+    this.chatId = process.env.TELEGRAM_GROUP_ID;
   }
 
-  async sendReport(message) {
+  async sendMessage(message) {
     try {
-      return await this.bot.sendMessage(this.groupId, message, {
+      console.log("Sending telegram message:", message);
+      const sent = await this.bot.sendMessage(this.chatId, message, {
         parse_mode: "Markdown",
+        disable_web_page_preview: true,
       });
+      console.log("Telegram message sent:", sent);
+      return sent;
     } catch (error) {
-      console.error("Error sending telegram message:", error);
+      console.error("Telegram send error:", error);
       throw error;
     }
   }

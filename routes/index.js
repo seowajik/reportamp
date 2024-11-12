@@ -62,12 +62,42 @@ router.post("/generate-report", async (req, res) => {
       }
     }
 
-    await transaction.commit();
+    // Generate and send Telegram message
+    try {
+      // Generate telegram message
+      const messageData = {
+        owner,
+        brands,
+        attention,
+        updates,
+      };
 
-    // Log success
+      console.log("Generating Telegram message with data:", messageData);
+      const telegramMessage = reportService.generateReportMessage(messageData);
+
+      // Send to telegram
+      console.log("Sending to Telegram:", telegramMessage);
+      const sentMessage = await telegramService.sendMessage(telegramMessage);
+
+      if (sentMessage && sentMessage.message_id) {
+        report.messageId = sentMessage.message_id;
+        await report.save({ transaction });
+      }
+
+      console.log("Telegram message sent successfully");
+    } catch (telegramError) {
+      console.error("Telegram Error:", telegramError);
+      // Don't throw error, continue with transaction
+    }
+
+    await transaction.commit();
     console.log("Report created successfully:", report.id);
 
-    res.json({ success: true, reportId: report.id });
+    res.json({
+      success: true,
+      reportId: report.id,
+      message: "Report generated and sent to Telegram successfully",
+    });
   } catch (error) {
     await transaction.rollback();
     console.error("Error generating report:", error);

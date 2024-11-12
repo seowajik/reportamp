@@ -1,5 +1,6 @@
 const moment = require("moment");
 const { Report, Brand, Url } = require("../models");
+const telegramService = require("./telegramService");
 
 class ReportService {
   /**
