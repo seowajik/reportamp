@@ -103,7 +103,7 @@ class ReportService {
 
     // Tampilkan AMP URL jika status aktif dan ada AMP URL
     if (url.ampStatus && url.ampUrl) {
-      urlEntry += `🔗 AMP Link: *${url.ampUrl}*\n`;
+      urlEntry += `🔗 Link Tujuan: *${url.ampUrl}*\n`;
     }
 
     urlEntry += "\n";
