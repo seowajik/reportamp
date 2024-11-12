@@ -102,6 +102,7 @@
                         <th>URL</th>
                         <th>Rank</th>
                         <th>AMP Status</th>
+                        <th>AMP URL</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -111,28 +112,132 @@
                             <%= urlIndex + 1 %>
                           </td>
                           <td>
-                            <a href="<%= url.url %>" target="_blank" class="link link-primary">
+                            <a href="<%= url.url %>" target="_blank" rel="noopener noreferrer"
+                              class="link link-primary hover:underline">
                               <%= url.url %>
                             </a>
                           </td>
                           <td>
-                            <div class="badge <%= url.rank <= 10 ? 'badge-success' : 'badge-warning' %>">
+                            <div class="badge badge-lg <%= url.rank <= 10 ? 'badge-success' : 'badge-warning' %>">
                               <%= url.rank %>
                             </div>
                           </td>
                           <td>
-                            <div class="badge <%= url.ampStatus ? 'badge-success' : 'badge-error' %>">
+                            <div class="badge badge-lg <%= url.ampStatus ? 'badge-success' : 'badge-error' %>">
                               <%= url.ampStatus ? 'Active' : 'Inactive' %>
                             </div>
                           </td>
+                          <td>
+                            <% if (url.ampStatus && url.ampUrl) { %>
+                              <a href="<%= url.ampUrl %>" target="_blank" rel="noopener noreferrer"
+                                class="link link-secondary hover:underline flex items-center gap-2">
+                                <i class="fas fa-bolt"></i>
+                                <%= url.ampUrl %>
+                              </a>
+                              <% } else { %>
+                                <span class="text-opacity-50">-</span>
+                                <% } %>
+                          </td>
                         </tr>
-                        <% }); %>
+                        <!-- Optional: AMP Details Row -->
+                        <% if (url.ampStatus && url.ampUrl) { %>
+                          <tr class="bg-base-200/50">
+                            <td colspan="5" class="space-y-2 py-4">
+                              <div class="flex items-center gap-2 text-sm">
+                                <i class="fas fa-info-circle text-info"></i>
+                                <span class="font-medium">AMP Status:</span>
+                                <span class="text-success">Verified</span>
+                              </div>
+                              <div class="flex items-center gap-2 text-sm">
+                                <i class="fas fa-link text-info"></i>
+                                <span class="font-medium">Original URL:</span>
+                                <a href="<%= url.url %>" target="_blank" rel="noopener noreferrer"
+                                  class="link link-primary hover:underline">
+                                  <%= url.url %>
+                                </a>
+                              </div>
+                              <div class="flex items-center gap-2 text-sm">
+                                <i class="fas fa-bolt text-info"></i>
+                                <span class="font-medium">AMP URL:</span>
+                                <a href="<%= url.ampUrl %>" target="_blank" rel="noopener noreferrer"
+                                  class="link link-secondary hover:underline">
+                                  <%= url.ampUrl %>
+                                </a>
+                              </div>
+                            </td>
+                          </tr>
+                          <% } %>
+                            <% }); %>
                     </tbody>
                   </table>
+                </div>
+
+                <!-- Statistics for this brand -->
+                <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                  <div class="stat bg-base-100 rounded-box p-4">
+                    <div class="stat-title">Total URLs</div>
+                    <div class="stat-value text-primary">
+                      <%= brand.Urls.length %>
+                    </div>
+                  </div>
+                  <div class="stat bg-base-100 rounded-box p-4">
+                    <div class="stat-title">AMP Active</div>
+                    <div class="stat-value text-success">
+                      <%= brand.Urls.filter(url=> url.ampStatus).length %>
+                    </div>
+                  </div>
+                  <div class="stat bg-base-100 rounded-box p-4">
+                    <div class="stat-title">Average Rank</div>
+                    <div class="stat-value text-warning">
+                      <%= (brand.Urls.reduce((sum, url)=> sum + parseInt(url.rank), 0) / brand.Urls.length).toFixed(1)
+                        %>
+                    </div>
+                  </div>
+                  <div class="stat bg-base-100 rounded-box p-4">
+                    <div class="stat-title">Best Rank</div>
+                    <div class="stat-value text-success">
+                      <%= Math.min(...brand.Urls.map(url=> parseInt(url.rank))) %>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
             <% }); %>
+
+              <!-- Overall Statistics -->
+              <div class="card bg-primary text-primary-content">
+                <div class="card-body">
+                  <h3 class="card-title text-lg mb-4">Overall Statistics</h3>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="stat">
+                      <div class="stat-title text-primary-content/80">Total Brands</div>
+                      <div class="stat-value">
+                        <%= report.Brands.length %>
+                      </div>
+                    </div>
+                    <div class="stat">
+                      <div class="stat-title text-primary-content/80">Total URLs</div>
+                      <div class="stat-value">
+                        <%= report.Brands.reduce((sum, brand)=> sum + brand.Urls.length, 0) %>
+                      </div>
+                    </div>
+                    <div class="stat">
+                      <div class="stat-title text-primary-content/80">AMP Active</div>
+                      <div class="stat-value">
+                        <%= report.Brands.reduce((sum, brand)=>
+                          sum + brand.Urls.filter(url => url.ampStatus).length, 0) %>
+                      </div>
+                    </div>
+                    <div class="stat">
+                      <div class="stat-title text-primary-content/80">Best Overall Rank</div>
+                      <div class="stat-value">
+                        <%= Math.min(...report.Brands.flatMap(brand=>
+                          brand.Urls.map(url => parseInt(url.rank)))) %>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
         </div>
 
         <!-- Additional Information -->

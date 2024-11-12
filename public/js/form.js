@@ -1,3 +1,5 @@
+let formHandler;
+
 // Theme management
 document.addEventListener("DOMContentLoaded", () => {
   const themeToggle = document.getElementById("theme-toggle");
@@ -15,7 +17,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// Form handling
 class FormHandler {
   constructor() {
     this.form = document.getElementById("reportForm");
@@ -29,8 +30,30 @@ class FormHandler {
     this.addBrandBtn.addEventListener("click", () => this.addBrand());
     document.addEventListener("click", (e) => this.handleGlobalClick(e));
 
+    // Handle AMP status changes using event delegation
+    this.form.addEventListener("change", (e) => {
+      if (e.target.classList.contains("amp-status-select")) {
+        this.handleAmpStatusChange(e.target);
+      }
+    });
+
     // Input validation listeners
     this.form.addEventListener("input", (e) => this.handleInput(e));
+  }
+
+  handleAmpStatusChange(selectElement) {
+    const urlEntry = selectElement.closest(".url-entry");
+    const ampUrlContainer = urlEntry.querySelector(".amp-url-container");
+    const ampUrlInput = ampUrlContainer.querySelector(".amp-url-input");
+
+    if (selectElement.value === "true") {
+      ampUrlContainer.style.display = "block";
+      ampUrlInput.required = true;
+    } else {
+      ampUrlContainer.style.display = "none";
+      ampUrlInput.required = false;
+      ampUrlInput.value = "";
+    }
   }
 
   handleInput(e) {
@@ -70,7 +93,6 @@ class FormHandler {
     e.preventDefault();
 
     if (!this.validateForm()) {
-      this.showError("Please fill all required fields correctly");
       return;
     }
 
@@ -107,6 +129,21 @@ class FormHandler {
       }
     });
 
+    // Validate AMP URLs
+    this.form.querySelectorAll(".amp-status-select").forEach((select) => {
+      if (select.value === "true") {
+        const urlEntry = select.closest(".url-entry");
+        const ampUrlInput = urlEntry.querySelector(".amp-url-input");
+        if (!ampUrlInput.value) {
+          isValid = false;
+          ampUrlInput.classList.add("input-error");
+          this.showError("AMP URL is required when AMP is active");
+        } else {
+          ampUrlInput.classList.remove("input-error");
+        }
+      }
+    });
+
     return isValid;
   }
 
@@ -128,17 +165,27 @@ class FormHandler {
         };
 
         brandEntry.querySelectorAll(".url-entry").forEach((urlEntry) => {
-          brand.urls.push({
+          const ampStatus =
+            urlEntry.querySelector(".amp-status-select").value === "true";
+          const urlData = {
             url: urlEntry.querySelector('[name*="[url]"]').value,
             rank: urlEntry.querySelector('[name*="[rank]"]').value,
-            ampStatus:
-              urlEntry.querySelector('[name*="[ampStatus]"]').value === "true",
-          });
+            ampStatus: ampStatus,
+          };
+
+          // Add ampUrl if AMP is active
+          if (ampStatus) {
+            const ampUrlInput = urlEntry.querySelector(".amp-url-input");
+            if (ampUrlInput && ampUrlInput.value) {
+              urlData.ampUrl = ampUrlInput.value;
+            }
+          }
+
+          brand.urls.push(urlData);
         });
 
         formData.brands.push(brand);
       });
-
     return formData;
   }
 
@@ -165,101 +212,113 @@ class FormHandler {
 
   createBrandElement(index) {
     return `
-          <div class="brand-entry card bg-base-200 shadow-sm hover-shadow">
-              <div class="card-body">
-                  <div class="flex flex-wrap justify-between items-center gap-4">
-                      <div class="flex items-center gap-2">
-                          <span class="badge badge-primary badge-lg">Brand ${
-                            index + 1
-                          }</span>
-                      </div>
-                      <button type="button" class="btn btn-error btn-sm remove-brand">
-                          <i class="fas fa-trash mr-2"></i>
-                          Remove Brand
-                      </button>
-                  </div>
-
-                  <div class="form-control">
-                      <label class="label">
-                          <span class="label-text font-medium">Brand Name</span>
-                          <span class="label-text-alt text-error">Required</span>
-                      </label>
-                      <input type="text" 
-                             name="brands[${index}][name]" 
-                             class="input input-bordered" 
-                             placeholder="Enter brand name"
-                             required />
-                  </div>
-
-                  <div class="urls-container space-y-4 mt-4">
-                      ${this.createUrlElement(index, 0)}
-                  </div>
-
-                  <div class="card-actions mt-4">
-                      <button type="button" class="btn btn-secondary btn-sm add-url">
-                          <i class="fas fa-plus mr-2"></i>
-                          Add URL
-                      </button>
-                  </div>
-              </div>
+      <div class="brand-entry card bg-base-200 shadow-sm hover-shadow">
+        <div class="card-body">
+          <div class="flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-2">
+              <span class="badge badge-primary badge-lg">Brand ${
+                index + 1
+              }</span>
+            </div>
+            <button type="button" class="btn btn-error btn-sm remove-brand">
+              <i class="fas fa-trash mr-2"></i>
+              Remove Brand
+            </button>
           </div>
-      `;
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text font-medium">Brand Name</span>
+              <span class="label-text-alt text-error">Required</span>
+            </label>
+            <input type="text" 
+                   name="brands[${index}][name]" 
+                   class="input input-bordered" 
+                   placeholder="Enter brand name"
+                   required />
+          </div>
+
+          <div class="urls-container space-y-4 mt-4">
+            ${this.createUrlElement(index, 0)}
+          </div>
+
+          <div class="card-actions mt-4">
+            <button type="button" class="btn btn-secondary btn-sm add-url">
+              <i class="fas fa-plus mr-2"></i>
+              Add URL
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   createUrlElement(brandIndex, urlIndex) {
     return `
-          <div class="url-entry card bg-base-100 hover-shadow fade-in">
-              <div class="card-body p-4">
-                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <div class="form-control">
-                          <label class="label">
-                              <span class="label-text font-medium">URL</span>
-                              <span class="label-text-alt text-error">Required</span>
-                          </label>
-                          <input type="url" 
-                                 name="brands[${brandIndex}][urls][${urlIndex}][url]" 
-                                 class="input input-bordered"
-                                 placeholder="https://example.com"
-                                 required />
-                      </div>
-
-                      <div class="form-control">
-                          <label class="label">
-                              <span class="label-text font-medium">Rank</span>
-                              <span class="label-text-alt text-error">Required</span>
-                          </label>
-                          <input type="number" 
-                                 name="brands[${brandIndex}][urls][${urlIndex}][rank]" 
-                                 class="input input-bordered"
-                                 min="1"
-                                 placeholder="Enter rank"
-                                 required />
-                      </div>
-
-                      <div class="form-control">
-                          <label class="label">
-                              <span class="label-text font-medium">AMP Status</span>
-                          </label>
-                          <select name="brands[${brandIndex}][urls][${urlIndex}][ampStatus]" 
-                                  class="select select-bordered">
-                              <option value="true">Active</option>
-                              <option value="false">Inactive</option>
-                          </select>
-                      </div>
-
-                      <div class="form-control">
-                          <label class="label">
-                              <span class="label-text font-medium">Actions</span>
-                          </label>
-                          <button type="button" class="btn btn-error btn-sm remove-url">
-                              <i class="fas fa-times mr-2"></i>
-                              Remove
-                          </button>
-                      </div>
-                  </div>
+      <div class="url-entry card bg-base-100 hover-shadow fade-in">
+        <div class="card-body p-4">
+          <div class="grid grid-cols-1 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-medium">URL</span>
+                  <span class="label-text-alt text-error">Required</span>
+                </label>
+                <input type="url" 
+                       name="brands[${brandIndex}][urls][${urlIndex}][url]" 
+                       class="input input-bordered"
+                       placeholder="https://example.com"
+                       required />
               </div>
+
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-medium">Rank</span>
+                  <span class="label-text-alt text-error">Required</span>
+                </label>
+                <input type="number" 
+                       name="brands[${brandIndex}][urls][${urlIndex}][rank]" 
+                       class="input input-bordered"
+                       min="1"
+                       placeholder="Enter rank"
+                       required />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-medium">AMP Status</span>
+                </label>
+                <select name="brands[${brandIndex}][urls][${urlIndex}][ampStatus]" 
+                        class="select select-bordered amp-status-select">
+                  <option value="false">Inactive</option>
+                  <option value="true">Active</option>
+                </select>
+              </div>
+
+              <div class="form-control amp-url-container" style="display: none;">
+                <label class="label">
+                  <span class="label-text font-medium">AMP URL</span>
+                  <span class="label-text-alt text-error">Required when AMP is active</span>
+                </label>
+                <input type="url" 
+                       name="brands[${brandIndex}][urls][${urlIndex}][ampUrl]" 
+                       class="input input-bordered amp-url-input"
+                       placeholder="https://amp.example.com" />
+              </div>
+            </div>
+
+            <div class="flex justify-end">
+              <button type="button" class="btn btn-error btn-sm remove-url">
+                <i class="fas fa-times mr-2"></i>
+                Remove URL
+              </button>
+            </div>
           </div>
-      `;
+        </div>
+      </div>
+    `;
   }
 
   handleGlobalClick(e) {
@@ -284,7 +343,6 @@ class FormHandler {
       "beforeend",
       this.createUrlElement(brandIndex, urlCount)
     );
-
     const newUrl = urlsContainer.lastElementChild;
     newUrl.scrollIntoView({ behavior: "smooth", block: "center" });
   }
@@ -322,11 +380,9 @@ class FormHandler {
     this.form.querySelectorAll(".brand-entry").forEach((brand, brandIndex) => {
       brand.querySelector(".badge").textContent = `Brand ${brandIndex + 1}`;
 
-      // Update brand name input
       const brandNameInput = brand.querySelector('[name*="[name]"]');
       brandNameInput.name = `brands[${brandIndex}][name]`;
 
-      // Update URLs
       brand.querySelectorAll(".url-entry").forEach((url, urlIndex) => {
         const inputs = url.querySelectorAll('[name*="[urls]"]');
         inputs.forEach((input) => {
@@ -337,7 +393,6 @@ class FormHandler {
     });
   }
 
-  // Modal handlers
   showLoading() {
     document.getElementById("loading-modal").showModal();
   }
@@ -356,5 +411,5 @@ class FormHandler {
   }
 }
 
-// Initialize form handler
-new FormHandler();
+// Initialize form handler globally
+window.formHandler = new FormHandler();

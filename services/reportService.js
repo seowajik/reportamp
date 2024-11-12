@@ -99,7 +99,14 @@ class ReportService {
     urlEntry += `🔗 *URL ${urlIndex}:*\n`;
     urlEntry += `${url.url}\n`;
     urlEntry += `📊 Rank: *${url.rank}*\n`;
-    urlEntry += `⚡ AMP: *${ampStatus}*\n\n`;
+    urlEntry += `⚡ AMP: *${ampStatus}*\n`;
+
+    // Tampilkan AMP URL jika status aktif dan ada AMP URL
+    if (url.ampStatus && url.ampUrl) {
+      urlEntry += `🔗 AMP Link: *${url.ampUrl}*\n`;
+    }
+
+    urlEntry += "\n";
     return urlEntry;
   }
 
@@ -228,6 +235,7 @@ class ReportService {
           );
         } else {
           brand.urls.forEach((url, urlIndex) => {
+            // Validate basic URL requirements
             if (!url.url) {
               errors.push(
                 `URL is required for ${
@@ -241,6 +249,17 @@ class ReportService {
                   brand.name || `brand #${index + 1}`
                 }`
               );
+            }
+
+            // Validate AMP URL when AMP is active
+            if (url.ampStatus === true) {
+              if (!url.ampUrl) {
+                errors.push(
+                  `AMP URL is required when AMP is active for ${
+                    url.url || `URL #${urlIndex + 1}`
+                  } in ${brand.name || `brand #${index + 1}`}`
+                );
+              }
             }
           });
         }

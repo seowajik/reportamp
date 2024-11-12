@@ -1,21 +1,23 @@
-const { Sequelize } = require("sequelize");
+const { Sequelize, DataTypes } = require("sequelize");
 const config = require("../config/database.js");
 
 const sequelize = new Sequelize(config.development);
 
-const models = {
-  Brand: require("./brand")(sequelize),
-  Url: require("./url")(sequelize),
-  Report: require("./report")(sequelize),
-};
+const db = {};
 
-// Associations
-models.Report.hasMany(models.Brand);
-models.Brand.belongsTo(models.Report);
-models.Brand.hasMany(models.Url);
-models.Url.belongsTo(models.Brand);
+db.sequelize = sequelize;
+db.Sequelize = Sequelize;
 
-module.exports = {
-  sequelize,
-  ...models,
-};
+// Import models
+db.Report = require("./report")(sequelize, DataTypes);
+db.Brand = require("./brand")(sequelize, DataTypes);
+db.Url = require("./url")(sequelize, DataTypes);
+
+// Define associations
+db.Report.hasMany(db.Brand);
+db.Brand.belongsTo(db.Report);
+
+db.Brand.hasMany(db.Url);
+db.Url.belongsTo(db.Brand);
+
+module.exports = db;

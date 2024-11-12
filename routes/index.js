@@ -15,10 +15,12 @@ router.post("/generate-report", async (req, res) => {
 
   try {
     const { owner, brands, attention, updates } = req.body;
+    console.log("Received data:", JSON.stringify(req.body, null, 2));
 
-    // Validasi data
-    if (!owner || !Array.isArray(brands) || brands.length === 0) {
-      throw new Error("Invalid input data");
+    // Validate input
+    const validation = reportService.validateReportData(req.body);
+    if (!validation.isValid) {
+      throw new Error(validation.errors.join(", "));
     }
 
     // Create report
@@ -33,10 +35,6 @@ router.post("/generate-report", async (req, res) => {
 
     // Create brands and URLs
     for (const brandData of brands) {
-      if (!brandData.name || !Array.isArray(brandData.urls)) {
-        continue;
-      }
-
       const brand = await Brand.create(
         {
           name: brandData.name,
@@ -47,44 +45,35 @@ router.post("/generate-report", async (req, res) => {
       );
 
       for (const urlData of brandData.urls) {
-        if (!urlData.url) continue;
+        const urlToCreate = {
+          url: urlData.url,
+          rank: urlData.rank,
+          ampStatus: urlData.ampStatus,
+          BrandId: brand.id,
+        };
 
-        await Url.create(
-          {
-            url: urlData.url,
-            rank: urlData.rank,
-            ampStatus: urlData.ampStatus,
-            BrandId: brand.id,
-          },
-          { transaction }
-        );
+        // Add ampUrl if it exists and AMP is active
+        if (urlData.ampStatus && urlData.ampUrl) {
+          urlToCreate.ampUrl = urlData.ampUrl;
+        }
+
+        console.log("Creating URL:", urlToCreate);
+        await Url.create(urlToCreate, { transaction });
       }
     }
 
-    // Generate and send telegram message
-    const reportMessage = reportService.generateReportMessage({
-      owner,
-      brands,
-      attention,
-      updates,
-    });
-
-    const sentMessage = await telegramService.sendReport(reportMessage);
-
-    // Save telegram message ID
-    if (sentMessage && sentMessage.message_id) {
-      report.messageId = sentMessage.message_id;
-      await report.save({ transaction });
-    }
-
     await transaction.commit();
+
+    // Log success
+    console.log("Report created successfully:", report.id);
+
     res.json({ success: true, reportId: report.id });
   } catch (error) {
     await transaction.rollback();
     console.error("Error generating report:", error);
     res.status(500).json({
       success: false,
-      error: error.message || "An error occurred while generating the report",
+      error: error.message || "Error generating report",
     });
   }
 });

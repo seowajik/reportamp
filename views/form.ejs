@@ -122,46 +122,60 @@
                 <div class="urls-container space-y-4 mt-4">
                   <div class="url-entry card bg-base-100 hover-shadow">
                     <div class="card-body p-4">
-                      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <!-- URL Input -->
-                        <div class="form-control">
-                          <label class="label">
-                            <span class="label-text font-medium">URL</span>
-                            <span class="label-text-alt text-error">Required</span>
-                          </label>
-                          <input type="url" name="brands[0][urls][0][url]" class="input input-bordered"
-                            placeholder="https://example.com" required />
+                      <div class="grid grid-cols-1 gap-4">
+                        <!-- URL dan Rank -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <!-- URL Input -->
+                          <div class="form-control">
+                            <label class="label">
+                              <span class="label-text font-medium">URL</span>
+                              <span class="label-text-alt text-error">Required</span>
+                            </label>
+                            <input type="url" name="brands[0][urls][0][url]" class="input input-bordered"
+                              placeholder="https://example.com" required />
+                          </div>
+
+                          <!-- Rank Input -->
+                          <div class="form-control">
+                            <label class="label">
+                              <span class="label-text font-medium">Rank</span>
+                              <span class="label-text-alt text-error">Required</span>
+                            </label>
+                            <input type="number" name="brands[0][urls][0][rank]" class="input input-bordered" min="1"
+                              placeholder="Enter rank" required />
+                          </div>
                         </div>
 
-                        <!-- Rank Input -->
-                        <div class="form-control">
-                          <label class="label">
-                            <span class="label-text font-medium">Rank</span>
-                            <span class="label-text-alt text-error">Required</span>
-                          </label>
-                          <input type="number" name="brands[0][urls][0][rank]" class="input input-bordered" min="1"
-                            placeholder="Enter rank" required />
+                        <!-- AMP Status dan URL -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <!-- AMP Status -->
+                          <div class="form-control">
+                            <label class="label">
+                              <span class="label-text font-medium">AMP Status</span>
+                            </label>
+                            <select name="brands[0][urls][0][ampStatus]"
+                              class="select select-bordered amp-status-select">
+                              <option value="false">Inactive</option>
+                              <option value="true">Active</option>
+                            </select>
+                          </div>
+
+                          <!-- AMP URL Input (Hidden by default) -->
+                          <div class="form-control amp-url-container" style="display: none;">
+                            <label class="label">
+                              <span class="label-text font-medium">AMP URL</span>
+                              <span class="label-text-alt text-error">Required when AMP is active</span>
+                            </label>
+                            <input type="url" name="brands[0][urls][0][ampUrl]"
+                              class="input input-bordered amp-url-input" placeholder="https://amp.example.com" />
+                          </div>
                         </div>
 
-                        <!-- AMP Status -->
-                        <div class="form-control">
-                          <label class="label">
-                            <span class="label-text font-medium">AMP Status</span>
-                          </label>
-                          <select name="brands[0][urls][0][ampStatus]" class="select select-bordered">
-                            <option value="true">Active</option>
-                            <option value="false">Inactive</option>
-                          </select>
-                        </div>
-
-                        <!-- URL Actions -->
-                        <div class="form-control">
-                          <label class="label">
-                            <span class="label-text font-medium">Actions</span>
-                          </label>
+                        <!-- Actions -->
+                        <div class="flex justify-end">
                           <button type="button" class="btn btn-error btn-sm remove-url">
                             <i class="fas fa-times mr-2"></i>
-                            Remove
+                            Remove URL
                           </button>
                         </div>
                       </div>
